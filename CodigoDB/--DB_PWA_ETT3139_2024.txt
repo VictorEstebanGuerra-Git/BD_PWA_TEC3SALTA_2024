@@ -1,0 +1,179 @@
+-- MySQL Workbench Synchronization
+-- Generated: 2024-11-06 20:48
+-- Project: DB_PWA_ETT3139_2024
+-- Author: Ramiro_Sebastian_Gaspar
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+CREATE SCHEMA IF NOT EXISTS `DB_PWA_ETT3139_2024` DEFAULT CHARACTER SET utf8 ;
+
+CREATE TABLE IF NOT EXISTS `DB_PWA_ETT3139_2024`.`padres_tutores` (
+  `dni` INT NOT NULL,
+  `nombre` VARCHAR(45) NULL,
+  `apellido` VARCHAR(45) NULL,
+  `correo` VARCHAR(45) NULL,
+  `telefono1` VARCHAR(45) NULL,
+  `telefono2` VARCHAR(45) NULL,
+  `contraseña` VARCHAR(45) NULL,
+  `firma` BLOB NULL,
+  PRIMARY KEY (`dni`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+CREATE TABLE IF NOT EXISTS `DB_PWA_ETT3139_2024`.`alumnos` (
+  `dni` INT NOT NULL,
+  `nombre` VARCHAR(45) NULL,
+  `apellido` VARCHAR(45) NULL,
+  `correo` VARCHAR(45) NULL,
+  `telefono` VARCHAR(45) NULL,
+  `contraseña` VARCHAR(45) NULL,
+  `tipo` VARCHAR(45) NULL,
+  `padres_tutores_dni` INT NOT NULL,
+  PRIMARY KEY (`dni`, `padres_tutores_dni`),
+  INDEX `fk_alumnos_padres_tutores_idx` (`padres_tutores_dni` ASC) VISIBLE,
+  CONSTRAINT `fk_alumnos_padres_tutores`
+    FOREIGN KEY (`padres_tutores_dni`)
+    REFERENCES `DB_PWA_ETT3139_2024`.`padres_tutores` (`dni`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+CREATE TABLE IF NOT EXISTS `DB_PWA_ETT3139_2024`.`docentes` (
+  `dni` INT NOT NULL,
+  `nombre` VARCHAR(45) NULL,
+  `apellido` VARCHAR(45) NULL,
+  `correo` VARCHAR(45) NULL,
+  `telefono` VARCHAR(45) NULL,
+  `contraseña` VARCHAR(45) NULL,
+  `firma` BLOB NULL,
+  PRIMARY KEY (`dni`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+CREATE TABLE IF NOT EXISTS `DB_PWA_ETT3139_2024`.`directivos_preceptores` (
+  `dni` INT NOT NULL,
+  `nombre` VARCHAR(45) NULL,
+  `apellido` VARCHAR(45) NULL,
+  `correo` VARCHAR(45) NULL,
+  `telefono` VARCHAR(45) NULL,
+  `contraseña` VARCHAR(45) NULL,
+  `firma` BLOB NULL,
+  `rol` VARCHAR(45) NULL,
+  PRIMARY KEY (`dni`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+CREATE TABLE IF NOT EXISTS `DB_PWA_ETT3139_2024`.`materias` (
+  `id` INT NOT NULL,
+  `nombre` VARCHAR(45) NULL,
+  `docentes_dni` INT NOT NULL,
+  PRIMARY KEY (`id`, `docentes_dni`),
+  INDEX `fk_materias_docentes1_idx` (`docentes_dni` ASC) VISIBLE,
+  CONSTRAINT `fk_materias_docentes1`
+    FOREIGN KEY (`docentes_dni`)
+    REFERENCES `DB_PWA_ETT3139_2024`.`docentes` (`dni`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+CREATE TABLE IF NOT EXISTS `DB_PWA_ETT3139_2024`.`horarios` (
+  `id` INT NOT NULL,
+  `dia` VARCHAR(45) NULL,
+  `hora_modulo` VARCHAR(45) NULL,
+  `turno` VARCHAR(45) NULL,
+  `materias_id` INT NOT NULL,
+  `materias_docentes_dni` INT NOT NULL,
+  PRIMARY KEY (`id`, `materias_id`, `materias_docentes_dni`),
+  INDEX `fk_horarios_materias1_idx` (`materias_id` ASC, `materias_docentes_dni` ASC) VISIBLE,
+  CONSTRAINT `fk_horarios_materias1`
+    FOREIGN KEY (`materias_id` , `materias_docentes_dni`)
+    REFERENCES `DB_PWA_ETT3139_2024`.`materias` (`id` , `docentes_dni`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+CREATE TABLE IF NOT EXISTS `DB_PWA_ETT3139_2024`.`curso` (
+  `ncurso_ndivision_ciclo` VARCHAR(75) NOT NULL,
+  `turno` VARCHAR(45) NULL,
+  `comunicados` TEXT NULL,
+  `alumnos_dni` INT NOT NULL,
+  `alumnos_padres_tutores_dni` INT NOT NULL,
+  `horarios_id` INT NOT NULL,
+  `horarios_materias_id` INT NOT NULL,
+  `horarios_materias_docentes_dni` INT NOT NULL,
+  `directivos_preceptores_dni` INT NOT NULL,
+  PRIMARY KEY (`ncurso_ndivision_ciclo`, `alumnos_dni`, `alumnos_padres_tutores_dni`, `horarios_id`, `horarios_materias_id`, `horarios_materias_docentes_dni`, `directivos_preceptores_dni`),
+  INDEX `fk_curso_alumnos1_idx` (`alumnos_dni` ASC, `alumnos_padres_tutores_dni` ASC) VISIBLE,
+  INDEX `fk_curso_horarios1_idx` (`horarios_id` ASC, `horarios_materias_id` ASC, `horarios_materias_docentes_dni` ASC) VISIBLE,
+  INDEX `fk_curso_directivos_preceptiores1_idx` (`directivos_preceptores_dni` ASC) VISIBLE,
+  CONSTRAINT `fk_curso_alumnos1`
+    FOREIGN KEY (`alumnos_dni` , `alumnos_padres_tutores_dni`)
+    REFERENCES `DB_PWA_ETT3139_2024`.`alumnos` (`dni` , `padres_tutores_dni`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_curso_horarios1`
+    FOREIGN KEY (`horarios_id` , `horarios_materias_id` , `horarios_materias_docentes_dni`)
+    REFERENCES `DB_PWA_ETT3139_2024`.`horarios` (`id` , `materias_id` , `materias_docentes_dni`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_curso_directivos_preceptiores1`
+    FOREIGN KEY (`directivos_preceptores_dni`)
+    REFERENCES `DB_PWA_ETT3139_2024`.`directivos_preceptores` (`dni`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+CREATE TABLE IF NOT EXISTS `DB_PWA_ETT3139_2024`.`asistencias` (
+  `id` INT NOT NULL,
+  `fecha` DATE NULL,
+  `estado` VARCHAR(45) NULL,
+  `curso_ncurso_ndivision_ciclo` VARCHAR(75) NOT NULL,
+  `curso_alumnos_dni` INT NOT NULL,
+  `curso_alumnos_padres_tutores_dni` INT NOT NULL,
+  `curso_horarios_id` INT NOT NULL,
+  `curso_horarios_materias_id` INT NOT NULL,
+  `curso_horarios_materias_docentes_dni` INT NOT NULL,
+  `curso_directivos_preceptores_dni` INT NOT NULL,
+  PRIMARY KEY (`id`, `curso_ncurso_ndivision_ciclo`, `curso_alumnos_dni`, `curso_alumnos_padres_tutores_dni`, `curso_horarios_id`, `curso_horarios_materias_id`, `curso_horarios_materias_docentes_dni`, `curso_directivos_preceptores_dni`),
+  INDEX `fk_asistencias_curso1_idx` (`curso_ncurso_ndivision_ciclo` ASC, `curso_alumnos_dni` ASC, `curso_alumnos_padres_tutores_dni` ASC, `curso_horarios_id` ASC, `curso_horarios_materias_id` ASC, `curso_horarios_materias_docentes_dni` ASC, `curso_directivos_preceptores_dni` ASC) VISIBLE,
+  CONSTRAINT `fk_asistencias_curso1`
+    FOREIGN KEY (`curso_ncurso_ndivision_ciclo` , `curso_alumnos_dni` , `curso_alumnos_padres_tutores_dni` , `curso_horarios_id` , `curso_horarios_materias_id` , `curso_horarios_materias_docentes_dni` , `curso_directivos_preceptores_dni`)
+    REFERENCES `DB_PWA_ETT3139_2024`.`curso` (`ncurso_ndivision_ciclo` , `alumnos_dni` , `alumnos_padres_tutores_dni` , `horarios_id` , `horarios_materias_id` , `horarios_materias_docentes_dni` , `directivos_preceptores_dni`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+CREATE TABLE IF NOT EXISTS `DB_PWA_ETT3139_2024`.`notas` (
+  `id` INT NOT NULL,
+  `trimestre1notas` JSON NULL,
+  `trimestre2notas` JSON NULL,
+  `trimestre3notas` JSON NULL,
+  `notasrecuperacion` JSON NULL,
+  `curso_ncurso_ndivision_ciclo` VARCHAR(75) NOT NULL,
+  `curso_alumnos_dni` INT NOT NULL,
+  `curso_alumnos_padres_tutores_dni` INT NOT NULL,
+  `curso_horarios_id` INT NOT NULL,
+  `curso_horarios_materias_id` INT NOT NULL,
+  `curso_horarios_materias_docentes_dni` INT NOT NULL,
+  `curso_directivos_preceptores_dni` INT NOT NULL,
+  PRIMARY KEY (`id`, `curso_ncurso_ndivision_ciclo`, `curso_alumnos_dni`, `curso_alumnos_padres_tutores_dni`, `curso_horarios_id`, `curso_horarios_materias_id`, `curso_horarios_materias_docentes_dni`, `curso_directivos_preceptores_dni`),
+  INDEX `fk_notas_curso1_idx` (`curso_ncurso_ndivision_ciclo` ASC, `curso_alumnos_dni` ASC, `curso_alumnos_padres_tutores_dni` ASC, `curso_horarios_id` ASC, `curso_horarios_materias_id` ASC, `curso_horarios_materias_docentes_dni` ASC, `curso_directivos_preceptores_dni` ASC) VISIBLE,
+  CONSTRAINT `fk_notas_curso1`
+    FOREIGN KEY (`curso_ncurso_ndivision_ciclo` , `curso_alumnos_dni` , `curso_alumnos_padres_tutores_dni` , `curso_horarios_id` , `curso_horarios_materias_id` , `curso_horarios_materias_docentes_dni` , `curso_directivos_preceptores_dni`)
+    REFERENCES `DB_PWA_ETT3139_2024`.`curso` (`ncurso_ndivision_ciclo` , `alumnos_dni` , `alumnos_padres_tutores_dni` , `horarios_id` , `horarios_materias_id` , `horarios_materias_docentes_dni` , `directivos_preceptores_dni`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
